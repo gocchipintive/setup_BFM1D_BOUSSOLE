@@ -180,7 +180,18 @@ instances:
     model: ogs/bfm_pelagic_base
     parameters:
       composition: cpns                                # elemental composition
-      rm:  4.25                                       # Sinking Velocity
+      rm:  7.0                                       # Sinking Velocity
+    initialization:
+      c: 1.0                                          # POC (mg C   /m^3)
+      n: 1.260E-002                                   # PON (mmol N /m^3)
+      p: 7.8620E-004                                  # POP (mmol P /m^3)
+      s: 1.260E-002                                   # POS (mmol S /m^3)
+  R8:
+    long_name: Large Particulate Organic carbon
+    model: ogs/bfm_pelagic_base
+    parameters:
+      composition: cpns                                # elemental composition
+      rm:  15.00                                       # Sinking Velocity
     initialization:
       c: 1.0                                          # POC (mg C   /m^3)
       n: 1.260E-002                                   # PON (mmol N /m^3)
@@ -227,7 +238,8 @@ instances:
       p_sulR1 : 0.0  #  [1/d]            Specific potential uptake for nutrient-poor DOM
       p_suR2 : 0.05  #  [1/d]            Specific potential uptake for semi-labile DOC
       p_suR3 : 0.0  #   [1/d]            Specific potential uptake for semi-refractory DOC
-      p_suR6 : 0.1  #   [1/d]            Specific potential uptake for POM (1/d)
+      p_suR6 : 0.012  #   [1/d]            Specific potential uptake for small POM (1/d)
+      p_suR8 : 0.03  #   [1/d]            Specific potential uptake for large POM (1/d)
       p_sum : 8.38 #    [1/d]            Potential specific growth rate
       p_pu_ra : 0.76  #  [-]              Activity respiration fraction
       p_pu_ra_o : 0.2  #  [-]              Additional respiration fraction at low O2 conc
@@ -245,13 +257,14 @@ instances:
       p_ruep : 1.0    #  [1/d]            Relaxation timescale for P uptake/remin.
       p_pu_ea_R3 : 0.0   #  [-]              Excretion of semi-refractory DOC
       p_qro : 0.5   #  [mmolHS-/mmolO2]  Stoichiometric coefficient for anaerobic reactions
-      p_pe_R1c: 0.60  # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72  # [-]           Fractional content of N in cytoplasm
       p_pe_R1p: 0.832 # [-]           Fractional content of P in cytoplasm
 #                   ---- CDOM production ----
       p_fX1b: 0.00     # [-]          fraction of colored labile DOC
       p_fX2b: 0.02     # [-]          fraction of colored semi-labile DOC
       p_fX3b: 0.018    # [-]          fraction of colored semi-refractory DOC
+#                   ---- POM split ----
+      p_fR6:  1.0      # [-]          fraction of lysis to small POC (R6) 
     initialization:
       c: 0.10                                               # carbon (mg C/m^3)
       n: 0.1700000000000000E-002                            # nitrogen (mmol N/m^3)
@@ -272,6 +285,11 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R6s: R6/s 
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       X3c: X3/c
@@ -293,6 +311,8 @@ instances:
       p_rOS: 0.05          # [1/d]            Specific reoxidation rate of reduction equivalents
       p_sR6N5: 0.1         # [1/d]            Specific remineralization rate of biogenic silica
       p_q10R6N5: 1.49      # [-]              Q10 factor for biogenic silica
+      p_sR8N5: 0.1         # [1/d]            Specific remineralization rate of biogenic silica (large POC)
+      p_q10R8N5: 1.49      # [-]              Q10 factor for biogenic silica (large POC)
       p_bX1c: 0.167        # [1/d]            photodegradation (bleaching) rate X1c
       p_bX2c: 0.167        # [1/d]            photodegradation (bleaching) rate X2c
       p_bX3c: 0.0119      # [1/d]            photodegradation (bleaching) rate X3c
@@ -322,10 +342,14 @@ instances:
       X2c: X2/c                                            # cdom X2c (mgC/m^3)
       X3c: X3/c                                            # cdom X3c (mgC/m^3)
       R3c: R3/c                                            # cdom R3c (mgC/m^3)
-      R6s: R6/s                                            # POSi (mgSi/m3)
+      R6s: R6/s                                            # POSi (mmolSi/m3)
       R6c: R6/c                                            # POC  (mgC/m3)
       R6n: R6/n                                            # PON  (mmolN/m3)
       R6p: R6/p                                            # POP (mmolP/m3)      
+      R8c: R8/c                                            # POC (mgC/m3)      
+      R8p: R8/p                                            # POP (mmolP/m3)      
+      R8n: R8/n                                            # PON (mmolN/m3)      
+      R8s: R8/s                                            # POP (mmolSi/m3)      
       PAR_tot: lightspectral/PAR_tot
       isBen:  Benthic_layer/isBen      
 ##  --------------------- CalciteDissolution
@@ -355,6 +379,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   1.04                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.037                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -397,6 +422,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                     # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                    # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 0.4                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -445,11 +474,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_12
+      size_down: P1_20
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_12:
@@ -461,6 +497,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.924                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.034                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -503,6 +540,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                     # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                    # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 0.52                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -551,11 +592,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_13
+      size_down: P1_11
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_13:
@@ -567,6 +615,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.821                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.032                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -609,6 +658,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                     # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                    # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 0.67                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -657,11 +710,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_14
+      size_down: P1_12
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_14:
@@ -673,6 +733,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.73                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.029                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -715,6 +776,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                   # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                 # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 0.87                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -763,11 +828,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_15
+      size_down: P1_13
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_15:
@@ -779,6 +851,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.649                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.027                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -821,6 +894,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                   # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                 # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 1.12                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -869,11 +946,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_16
+      size_down: P1_14
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_16:
@@ -885,6 +969,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.577                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.024                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -927,6 +1012,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                     # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                    # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 1.45                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -975,11 +1064,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_17
+      size_down: P1_15
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_17:
@@ -991,6 +1087,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.513                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.022                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1033,6 +1130,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                     # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                    # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 1.88                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -1081,11 +1182,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_18
+      size_down: P1_16
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_18:
@@ -1097,6 +1205,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.456                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.02                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1139,6 +1248,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                     # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                    # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 2.43                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -1187,11 +1300,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_19
+      size_down: P1_17
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_19:
@@ -1203,6 +1323,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.405                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.017                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1245,6 +1366,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                     # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                    # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 3.14                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -1293,11 +1418,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_20
+      size_down: P1_18
+      size_max: P1_20
 #
 #-------------------------------------------------------------
   P1_20:
@@ -1309,6 +1441,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.36                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.015                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1351,6 +1484,10 @@ instances:
       p_qslc: 0.0086                        # [mmolSi/mgC]   minimum silicate to carbon ratio (mmol Si/mg C)
       use_Si: .TRUE.                        # use silicate, default = false
       p_qscPPY: 0.018                       # [mmolSi/mgC]   Reference quotum Si:C
+#                   ---- Diatoms reproduction  ----
+      p_arepr_rate: 0.001                     # [1/d]  asexual reproduction rate for diatoms
+      p_srepr_rate: 0.0                     # [1/d]  sexual reproduction rate for diatoms
+      p_min_biomass: 0.0001                    # [mgC/m3]  quiescent biomass threshold
 #                   ---- nutrient stressed sinking ----
       p_esNI: 0.7                           # [-]            Nutrient stress threshold for sinking
       p_res: 4.05                            # [m/d]          Maximum Sinking vel city (m/d)
@@ -1399,11 +1536,18 @@ instances:
       R6n: R6/n
       R6s: R6/s
       R6p: R6/p
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c: X1/c
       X2c: X2/c
       O3h: O3h/h
       O5c: O5/c
       PAR: lightspectral/PAR_P1
+      size_up: P1_20
+      size_down: P1_19
+      size_max: P1_20
 #
 #------------------------------------------------------------------
   P4_11:
@@ -1415,6 +1559,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.669                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.037                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1481,6 +1626,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -1497,6 +1645,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.603                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.034                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1563,6 +1712,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -1579,6 +1731,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.544                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.032                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1645,6 +1798,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -1661,6 +1817,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.49                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.029                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1727,6 +1884,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -1743,6 +1903,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.441                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.027                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1809,6 +1970,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -1825,6 +1989,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.398                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.024                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1891,6 +2056,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -1907,6 +2075,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.359                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.022                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -1973,6 +2142,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -1989,6 +2161,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.323                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.02                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2055,6 +2228,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2071,6 +2247,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.291                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.017                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2137,6 +2314,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2153,6 +2333,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.262                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.015                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2219,6 +2400,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2235,6 +2419,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.909                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.053                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2302,6 +2487,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2318,6 +2506,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.849                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.051                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2385,6 +2574,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2401,6 +2593,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.792                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.049                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2468,6 +2661,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2484,6 +2680,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.739                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.046                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2551,6 +2748,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2567,6 +2767,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.689                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.044                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2634,6 +2835,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2650,6 +2854,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.643                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.041                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2717,6 +2922,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2733,6 +2941,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.6                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.039                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2800,6 +3009,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2816,6 +3028,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.56                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.037                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2883,6 +3096,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2899,6 +3115,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.522                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.034                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -2966,6 +3183,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -2982,6 +3202,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.487                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.032                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3049,6 +3270,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3065,6 +3289,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.792                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.049                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.00                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3132,6 +3357,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3148,6 +3376,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.739                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.046                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.00                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3215,6 +3444,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3231,6 +3463,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.689                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.044                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.00                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3298,6 +3531,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3314,6 +3550,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.643                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.041                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3381,6 +3618,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3397,6 +3637,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.6                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.039                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3464,6 +3705,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3480,6 +3724,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.56                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.037                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3547,6 +3792,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3563,6 +3811,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.522                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.034                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.75                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3630,6 +3879,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3646,6 +3898,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.487                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.032                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3713,6 +3966,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3729,6 +3985,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.455                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.029                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3796,6 +4053,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3812,6 +4072,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.424                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.027                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   0.5                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3879,6 +4140,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3895,6 +4159,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.985                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.058                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -3962,6 +4227,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -3978,6 +4246,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.931                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.056                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4045,6 +4314,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4061,6 +4333,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.881                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.053                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4128,6 +4401,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4144,6 +4420,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.834                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.051                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4211,6 +4488,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4227,6 +4507,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.789                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.049                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4294,6 +4575,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4310,6 +4594,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.746                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.046                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4377,6 +4662,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4393,6 +4681,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.985                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.058                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4460,6 +4749,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4476,6 +4768,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.931                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.056                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4543,6 +4836,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4559,6 +4855,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.881                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.053                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4626,6 +4923,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4642,6 +4942,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.834                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.051                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4709,6 +5010,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4725,6 +5029,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.789                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.049                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4792,6 +5097,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4808,6 +5116,7 @@ instances:
       p_temp:  0.0                          # [-]            Cut-off threshold for temperature factor
       p_sum:   0.746                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.046                         # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4875,6 +5184,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c 
       O3h: O3h/h
@@ -4891,6 +5203,7 @@ instances:
       p_temp:  0.00                         # [-]            Cut-off threshold for temperature factor
       p_sum:   1                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.063                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -4970,6 +5283,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c
       O3h: O3h/h
@@ -4986,6 +5302,7 @@ instances:
       p_temp:  0.00                         # [-]            Cut-off threshold for temperature factor
       p_sum:   0.986                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.061                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -5065,6 +5382,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c
       O3h: O3h/h
@@ -5081,6 +5401,7 @@ instances:
       p_temp:  0.00                         # [-]            Cut-off threshold for temperature factor
       p_sum:   0.973                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.058                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -5160,6 +5481,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c
       O3h: O3h/h
@@ -5176,6 +5500,7 @@ instances:
       p_temp:  0.00                         # [-]            Cut-off threshold for temperature factor
       p_sum:   0.92                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.068                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -5242,6 +5567,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c
       O3h: O3h/h
@@ -5258,6 +5586,7 @@ instances:
       p_temp:  0.00                         # [-]            Cut-off threshold for temperature factor
       p_sum:   0.959                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.065                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -5324,6 +5653,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c
       O3h: O3h/h
@@ -5340,6 +5672,7 @@ instances:
       p_temp:  0.00                         # [-]            Cut-off threshold for temperature factor
       p_sum:   1                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.063                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -5406,6 +5739,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c
       O3h: O3h/h
@@ -5422,6 +5758,7 @@ instances:
       p_temp:  0.00                         # [-]            Cut-off threshold for temperature factor
       p_sum:   0.841                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.073                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -5488,6 +5825,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c
       O3h: O3h/h
@@ -5504,6 +5844,7 @@ instances:
       p_temp:  0.0                         # [-]            Cut-off threshold for temperature factor
       p_sum:   0.889                          # [1/d]          maximum specific productivity at reference temperature (1/d)
       p_srs:   0.07                          # [1/d]          Respiration rate at 10 degrees C
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_sdmo:  0.0                          # [1/d]          Max.specific nutrient-stress lysis rate
       p_thdo:  0.0                          # [-]            Half saturation constant for nutrient stress lysis
       p_seo:   0.0                          # [1/d]          Extra lysis rate (biomass density-dependent)
@@ -5570,6 +5911,9 @@ instances:
       R6c: R6/c 
       R6n: R6/n 
       R6p: R6/p 
+      R8c: R8/c
+      R8n: R8/n
+      R8p: R8/p
       X1c: X1/c 
       X2c: X2/c
       O3h: O3h/h
@@ -5695,6 +6039,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------     
 #-------------------------------------------------------------------- 
+      p_fR6:   1.0       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -5712,6 +6057,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -5886,6 +6235,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------     
 #-------------------------------------------------------------------- 
+      p_fR6:   1.0                          # [-]            fraction of lysis to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -5903,6 +6253,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -6077,6 +6431,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------     
 #-------------------------------------------------------------------- 
+      p_fR6:   1.0       # [-]            fraction of lysis to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -6094,6 +6449,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -6268,6 +6627,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------     
 #-------------------------------------------------------------------- 
+      p_fR6:   1.0       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -6285,6 +6645,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -6459,6 +6823,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------     
 #-------------------------------------------------------------------- 
+      p_fR6:   1.0       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -6476,6 +6841,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -6650,6 +7019,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------     
 #-------------------------------------------------------------------- 
+      p_fR6:   1.0       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -6667,6 +7037,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -6841,6 +7215,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------     
 #-------------------------------------------------------------------- 
+      p_fR6:   1.0       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -6858,6 +7233,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -7032,6 +7411,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -7049,6 +7429,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -7223,6 +7607,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -7240,6 +7625,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -7414,6 +7803,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -7431,6 +7821,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -7605,6 +7999,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -7622,6 +8017,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -7796,6 +8195,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -7813,6 +8213,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -7987,6 +8391,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -8004,6 +8409,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -8178,6 +8587,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -8195,6 +8605,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -8369,6 +8783,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -8386,6 +8801,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -8560,6 +8979,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -8577,6 +8997,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -8751,6 +9175,7 @@ instances:
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
 #--------------------------------------------------------------------
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
       p_pe_R1c: 0.60     # [-]           Fractional content of C in cytoplasm
       p_pe_R1n: 0.72     # [-]           Fractional content of C in cytoplasm
       p_pe_R1p: 0.832    # [-]           Fractional content of C in cytoplasm
@@ -8768,6 +9193,10 @@ instances:
       R6s:   R6/s                        # POSi (mgSi/m3)
       R6n:   R6/n                        # PON (mmolN/m3)
       R6p:   R6/p                        # POP (mmolP/m3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       X1c:   X1/c                        # labile CDOM
       R1c:   R1/c                        # labile DOC
       R1n:   R1/n                        # labile DON
@@ -8843,6 +9272,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     28                      # [-]             Number of preys
       suprey1:   0.76     # [-]           Availability of P2_4 to Z4_15
@@ -8956,6 +9386,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P2_4
       prey2:   P2_5
       prey3:   P2_6
@@ -9027,6 +9461,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     32                      # [-]             Number of preys
       suprey1:   0.35     # [-]           Availability of P2_4 to Z4_16
@@ -9140,6 +9575,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P2_4
       prey2:   P2_5
       prey3:   P2_6
@@ -9211,6 +9650,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     36                      # [-]             Number of preys
       suprey1:   0.02     # [-]           Availability of P1_11 to Z4_17
@@ -9324,6 +9764,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P2_4
       prey3:   P2_5
@@ -9395,6 +9839,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     39                      # [-]             Number of preys
       suprey1:   0.11     # [-]           Availability of P1_11 to Z4_18
@@ -9508,6 +9953,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P2_4
@@ -9579,6 +10028,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     41                      # [-]             Number of preys
       suprey1:   0.38     # [-]           Availability of P1_11 to Z4_19
@@ -9692,6 +10142,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -9763,6 +10217,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     41                      # [-]             Number of preys
       suprey1:   0.79     # [-]           Availability of P1_11 to Z4_20
@@ -9876,6 +10331,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -9947,6 +10406,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     41                      # [-]             Number of preys
       suprey1:   1     # [-]           Availability of P1_11 to Z4_21
@@ -10060,6 +10520,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -10131,6 +10595,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     40                      # [-]             Number of preys
       suprey1:   0.76     # [-]           Availability of P1_11 to Z4_22
@@ -10244,6 +10709,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -10315,6 +10784,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     41                      # [-]             Number of preys
       suprey1:   0.35     # [-]           Availability of P1_11 to Z4_23
@@ -10428,6 +10898,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -10499,6 +10973,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-------------------------------------------------------------------------------
       nprey:     41                      # [-]             Number of preys
       suprey1:   0.1     # [-]           Availability of P1_11 to Z4_24
@@ -10612,6 +11087,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -10683,6 +11162,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     22                      # [-]             Number of preys
       suprey1:   0.76     # [-]           Availability of P1_11 to Z3_22
@@ -10796,6 +11276,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -10867,6 +11351,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     26                      # [-]             Number of preys
       suprey1:   0.35     # [-]           Availability of P1_11 to Z3_23
@@ -10980,6 +11465,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -11051,6 +11540,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     29                      # [-]             Number of preys
       suprey1:   0.1     # [-]           Availability of P1_11 to Z3_24
@@ -11164,6 +11654,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -11235,6 +11729,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     31                      # [-]             Number of preys
       suprey1:   0.02     # [-]           Availability of P1_11 to Z3_25
@@ -11348,6 +11843,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_11
       prey2:   P1_12
       prey3:   P1_13
@@ -11419,6 +11918,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     31                      # [-]             Number of preys
       suprey1:   0.02     # [-]           Availability of P1_12 to Z3_26
@@ -11532,6 +12032,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_12
       prey2:   P1_13
       prey3:   P1_14
@@ -11603,6 +12107,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     29                      # [-]             Number of preys
       suprey1:   0.02     # [-]           Availability of P1_13 to Z3_27
@@ -11716,6 +12221,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_13
       prey2:   P1_14
       prey3:   P1_15
@@ -11787,6 +12296,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     28                      # [-]             Number of preys
       suprey1:   0.02     # [-]           Availability of P1_14 to Z3_28
@@ -11900,6 +12410,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_14
       prey2:   P1_15
       prey3:   P1_16
@@ -11971,6 +12485,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     27                      # [-]             Number of preys
       suprey1:   0.02     # [-]           Availability of P1_15 to Z3_29
@@ -12084,6 +12599,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_15
       prey2:   P1_16
       prey3:   P1_17
@@ -12155,6 +12674,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     25                      # [-]             Number of preys
       suprey1:   0.02     # [-]           Availability of P1_16 to Z3_30
@@ -12268,6 +12788,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_16
       prey2:   P1_17
       prey3:   P1_18
@@ -12339,6 +12863,7 @@ instances:
       p_qpcMEZ: 1.67e-3                 # [mmolP/mgC]     Maximum quotum P:C
       p_qncMEZ: 0.015                   # [mmolN/mgC]     Maximum quotum N:C
       p_clO2o: 30.0                     # [mmolO2/m3]     Half-saturation oxygen concentration
+      p_fR6:   0.5       # [-]           Fraction of lysis and sloppy predation to small POC (R6)
 #-----------------------------------------------------------------------------
       nprey:     22                      # [-]             Number of preys
       suprey1:   0.02     # [-]           Availability of P1_17 to Z3_31
@@ -12452,6 +12977,10 @@ instances:
       R6n: R6/n                                            # PON
       R6p: R6/p                                            # POP
       R6s: R6/s                                            # biogenic silica (mmol Si/m^3)
+      R8c: R8/c
+      R8n: R8/n
+      R8s: R8/s
+      R8p: R8/p
       prey1:   P1_17
       prey2:   P1_18
       prey3:   P1_19
